@@ -1,0 +1,96 @@
+#include	<vector>
+#include	<thread>
+#include	<mutex>
+#include	"cxx_sums.h"
+#include	"conf_thrd_pool.h"
+
+/**
+ *  @addtogroup sum_funcs
+ *  @{  
+ */
+
+/*
+ * st = [ down(n/T) + 1, t < n mod T
+ *      [ down(n/T)
+ *
+ * i_start = [ t * down(n/T), t <= n mod T
+ *           [ (n mod T) * (down(n/T)+1) + (t - n mod T)*down(n/T) = ...
+ *           ... t * down(n/T) + (n mod T), t > n mod T
+ * i_end = i_start + st
+ */
+unsigned
+sum_loc (const unsigned *V, size_t n)
+{
+	unsigned T = get_num_threads ();
+	std::vector<std::thread> workers (T-1);
+	std::mutex mtx;
+	unsigned END_RESULT = 0;
+	
+	auto worker_proc = ([V, n, T, &mtx, &END_RESULT](unsigned t) {
+		size_t a = n % T, b = n / T;
+		if (t < a)
+			a = t * ++b;
+		else
+			a += t * b;
+		b += a;
+
+		unsigned res = 0;
+		for (size_t i = a; i < b; ++i) {
+			res += V[i];
+		}
+		
+		{
+			std::scoped_lock<std::mutex> slock (mtx);	// std::lock_guard for C++11.
+			END_RESULT += res;
+		}
+	});
+
+	for (unsigned t = 0; t < T-1; ++t)
+		workers[t] = std::thread (worker_proc, t+1);
+
+	worker_proc(0);
+
+	for (unsigned t = 0; t < T-1; ++t)
+		workers[t].join ();
+
+	return END_RESULT;
+}
+
+unsigned
+sum_loc_partial_sum (const unsigned *V, size_t n)
+{
+	unsigned T = get_num_threads ();
+	std::vector<std::thread> workers (T-1);
+	std::vector<partial_sum> partial_sums (T);
+	unsigned END_RESULT = 0;
+	
+	auto worker_proc = ([V, n, T, &partial_sums](unsigned t) {
+		size_t a = n % T, b = n / T;
+		if (t < a)
+			a = t * ++b;
+		else
+			a += t * b;
+		b += a;
+		
+		unsigned res = 0;
+		for (size_t i = a; i < b; ++i)
+			res += V[i];
+
+		partial_sums[t].v = res;
+	});
+
+	for (unsigned t = 0; t < T-1; ++t)
+		workers[t] = std::thread (worker_proc, t+1);
+
+	worker_proc(0);
+	
+	for (unsigned t = 0; t < T-1; ++t)
+		workers[t].join ();
+		
+	for (unsigned i = 0; i < T; ++i)
+		END_RESULT += partial_sums[i].v;
+
+	return END_RESULT;
+}
+
+/** @} */

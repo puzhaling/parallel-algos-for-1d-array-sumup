@@ -39,6 +39,7 @@ $(objs_dir)/%.o : %.cc
 
 srcs := c_sums.c conduct_experiment.cc conf_thrd_pool.c cxx_sums.cc barrier.cc \
 		semaphore.c
+		
 objs := $(addprefix $(objs_dir)/,$(patsubst %.c,%.o,$(patsubst %.cc,%.c,$(srcs))))
 executable := conduct_experiment
 
@@ -53,6 +54,7 @@ c_sums.cc : c_sums.h
 conf_thrd_pool.cc conduct_experiment.cc : conf_thrd_pool.h
 cxx_sums.cc c_sums.cc cxx_sums.h : conf_thrd_pool.h
 barrier.cc : barrier.h
+sum_reduce.cc : barrier.h conf_thrd_pool.h
 semaphore.cc : semaphore.h
 
 

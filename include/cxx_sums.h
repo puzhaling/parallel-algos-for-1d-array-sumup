@@ -18,6 +18,8 @@ extern "C" {
 unsigned sum_loc (const unsigned *V, size_t n);
 
 unsigned sum_loc_partial_sum (const unsigned *V, size_t n);
+
+unsigned sum_reduce (const unsigned *v, size_t n);
 /** @} */
 
 #endif /* !CXX_SUMS_H */

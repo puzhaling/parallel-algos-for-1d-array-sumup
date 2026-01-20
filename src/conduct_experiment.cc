@@ -4,6 +4,7 @@
 #include	<vector>
 #include	<thread>
 #include	<iomanip>
+
 #include	"cxx_sums.h"
 #include	"conf_thrd_pool.h"
 
@@ -150,15 +151,17 @@ int
 main ()
 {
 	constexpr size_t N = 1 << 22;
-	
-	unsigned sum_loc (const unsigned *V, size_t n);
+
 	struct sum_command const sum_commands[] = {
+	/*
 		SUM_COMMAND (seq),
 		SUM_COMMAND (autoreduce),
 		SUM_COMMAND (rr_fs),
 		SUM_COMMAND (rr_fs_partial_sum),
 		SUM_COMMAND (loc),
-		SUM_COMMAND (loc_partial_sum)
+		SUM_COMMAND (loc_partial_sum),
+	*/
+		SUM_COMMAND (reduce),
 	};
 
 	std::cout << "Algorithm,Nthreads,Time(ms),SpeedUp,Efficiency,Result\n";
